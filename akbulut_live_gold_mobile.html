@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Akbulut Kuyumculuk — Canlı Fiyat (Mobil)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #ffd700;
+  --muted: #c0b59a;
+  --bg: #060606;
+  --text: #f6f0e6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+  background: linear-gradient(180deg, var(--bg) 0%, #020202 100%);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 12px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.logo {
+  width: 220px;
+  height: 90px;
+  background-image: url('logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 10px auto 4px;
+  opacity: 0.95;
+}
+.header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.header h1 {
+  color: var(--gold);
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+.header p {
+  color: var(--muted);
+  font-size: 13px;
+}
+.table {
+  width: 100%;
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  border: 1px solid rgba(255,215,0,0.05);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th, .table td {
+  padding: 8px;
+  text-align: left;
+}
+.table thead th {
+  background: rgba(0,0,0,0.4);
+  color: var(--gold);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+.table tbody td {
+  border-top: 1px solid rgba(255,215,0,0.05);
+  color: var(--text);
+}
+.cards {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+.card {
+  flex: 1;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,215,0,0.05);
+  border-radius: 10px;
+  text-align: center;
+  padding: 8px;
+}
+.card .label {
+  color: var(--muted);
+  font-size: 12px;
+}
+.card .val {
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.footer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+.fade { transition: opacity 400ms ease; }
+</style>
+</head>
+<body>
+  <div class="logo"></div>
+  <div class="header">
+    <h1>AKBULUT KUYUMCULUK</h1>
+    <p>Zerafetin Parladığı Adres</p>
+  </div>
+
+  <div class="table fade">
+    <table>
+      <thead><tr><th>ÜRÜN</th><th>ALIŞ (TL)</th><th>SATIŞ (TL)</th></tr></thead>
+      <tbody id="priceRows"><tr><td colspan="3" style="text-align:center;color:var(--muted)">Yükleniyor...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="label">ONS</div><div class="val" id="ons">--</div></div>
+    <div class="card"><div class="label">EURO</div><div class="val" id="euro">--</div></div>
+    <div class="card"><div class="label">DOLAR</div><div class="val" id="usd">--</div></div>
+  </div>
+
+  <div class="footer">
+    <div id="datetime">--</div>
+    <div>Bilgi amaçlıdır. © Akbulut Kuyumculuk — Cano ile hazırlandı</div>
+  </div>
+
+<script>
+const API_KEY = "c18dab8c3amsh3ce3448a09c3cb8p176f7fjsncf7f76f3a7a2";
+const API_URL = "https://harem-altin-live-gold-price-data.p.rapidapi.com/harem_altin/prices";
+const options = {
+  method: "GET",
+  headers: {
+    "x-rapidapi-key": API_KEY,
+    "x-rapidapi-host": "harem-altin-live-gold-price-data.p.rapidapi.com"
+  }
+};
+
+const products = [
+  "Has Altın","24 Ayar Gram Altın","22 Ayar Gram Altın","Yeni Çeyrek","Eski Çeyrek",
+  "Yeni Yarım","Eski Yarım","Yeni Tam","Eski Tam","Yeni Ata","Eski Ata",
+  "Yeni Gramise","Eski Gramise","Yeni Ata Beşli","Eski Ata Beşli","14 Ayar","8 Ayar"
+];
+
+function buildTable(map){
+  const tbody = document.getElementById('priceRows');
+  tbody.innerHTML = "";
+  for(const p of products){
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td'); td1.textContent = p;
+    const td2 = document.createElement('td'); td2.textContent = map[p] ? (map[p].buy ?? '--') : '--';
+    const td3 = document.createElement('td'); td3.textContent = map[p] ? (map[p].sell ?? '--') : '--';
+    tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+    tbody.appendChild(tr);
+  }
+}
+
+function setSide(ons,euro,usd){
+  document.getElementById('ons').textContent = ons ?? '--';
+  document.getElementById('euro').textContent = euro ?? '--';
+  document.getElementById('usd').textContent = usd ?? '--';
+}
+
+function updateDate(){ document.getElementById('datetime').textContent = new Date().toLocaleString(); }
+setInterval(updateDate,1000); updateDate();
+
+async function fetchPrices(){
+  try{
+    const res = await fetch(API_URL, options);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const j = await res.json();
+    const map = {};
+
+    if(Array.isArray(j.data)){
+      j.data.forEach(item => {
+        const name = item.name || item.title || item.urunadi;
+        if(!name) return;
+        map[name] = { buy: item.buy || item.alis, sell: item.sell || item.satis };
+      });
+    } else if(j.prices && typeof j.prices === 'object'){
+      for(const k in j.prices){
+        const it = j.prices[k];
+        const name = it.name || k;
+        map[name] = { buy: it.buy || it.alis, sell: it.sell || it.satis };
+      }
+    }
+
+    const ons = j.ons || j.ounce || j.ONS;
+    const euro = j.euro || j.EURO;
+    const usd = j.usd || j.USD;
+
+    buildTable(map);
+    setSide(ons,euro,usd);
+  } catch(err){
+    document.getElementById('priceRows').innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted)">Veri çekilemedi</td></tr>';
+  }
+}
+
+fetchPrices();
+setInterval(fetchPrices,10000);
+</script>
+</body>
+</html>
